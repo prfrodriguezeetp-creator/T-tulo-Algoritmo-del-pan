@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Simulador: Construye el algoritmo – ¿Cómo comprar pan?</title>
+    <style>
+        :root {
+            --bg: #f3e9ff;
+            --card-bg: #ffffff;
+            --text: #2b1b3d;
+            --primary: #6c3fb5;
+            --accent: #ff9f1c;
+            --success: #2e7d32;
+            --error: #c62828;
+            --shadow: 0 8px 20px rgba(0,0,0,0.08);
+            --radius: 20px;
+            --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font);
+            background: linear-gradient(145deg, #f0e6ff 0%, #f9f3ff 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .phone-frame {
+            width: 100%;
+            max-width: 420px;
+            height: 100vh;
+            max-height: 850px;
+            background: rgba(255,255,255,0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.5);
+            position: relative;
+        }
+
+        /* Header */
+        .header {
+            padding: 18px 18px 8px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #3e2756;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .header .subtitle {
+            font-size: 0.85rem;
+            color: #5c4b73;
+            font-weight: 500;
+            background: #ede2ff;
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 20px;
+        }
+
+        /* Steps container (top section) */
+        .steps-section {
+            flex: 1 1 auto;
+            padding: 10px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;  /* small scroll if needed but design fits */
+            min-height: 0;
+        }
+        .step-card {
+            background: white;
+            border: 2.5px dashed #c7b0e0;
+            border-radius: 18px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #3e2c56;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+            user-select: none;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        }
+        .step-card.selected {
+            border-color: #6c3fb5;
+            background: #f3edff;
+            box-shadow: 0 0 0 5px rgba(108, 63, 181, 0.15);
+            transform: scale(1.01);
+        }
+        .step-card.completed {
+            border-style: solid;
+            border-color: #2e7d32;
+            background: #e9f5ea;
+            cursor: default;
+            pointer-events: none;
+            box-shadow: 0 0 0 5px rgba(46,125,50,0.1);
+        }
+        .step-card .step-number {
+            background: #e4d5f9;
+            color: #5b3b8c;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+        .step-card .step-text {
+            flex: 1;
+        }
+        .step-card .shape-indicator {
+            width: 32px;
+            height: 32px;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            opacity: 0.5;
+        }
+        .step-card.completed .shape-indicator {
+            opacity: 1;
+            font-size: 1.4rem;
+        }
+
+        /* Symbols section (bottom) */
+        .symbols-section {
+            padding: 12px 18px 20px;
+            background: rgba(255,255,255,0.4);
+            border-top: 2px solid #e3d6f5;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+        .symbol-btn {
+            flex: 1 1 100px;
+            max-width: 110px;
+            height: 80px;
+            border: none;
+            background: white;
+            border-radius: 18px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            font-weight: 700;
+            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            position: relative;
+            color: #3e2c56;
+            touch-action: manipulation;
+        }
+        .symbol-btn:active {
+            transform: scale(0.93);
+            background: #f1ebff;
+        }
+        .symbol-shape {
+            width: 40px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+        }
+        /* Custom shapes */
+        .shape-oval {
+            background: #d9c5f0;
+            border-radius: 50%;
+            width: 44px;
+            height: 30px;
+        }
+        .shape-parallelogram {
+            background: #d9c5f0;
+            clip-path: polygon(20% 0%, 100% 0%, 80% 100%, 0% 100%);
+            width: 44px;
+            height: 30px;
+        }
+        .shape-rectangle {
+            background: #d9c5f0;
+            border-radius: 4px;
+            width: 44px;
+            height: 28px;
+        }
+        .shape-rhombus {
+            background: #d9c5f0;
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+            width: 40px;
+            height: 40px;
+        }
+        .symbol-btn.correct-flash {
+            animation: greenPulse 0.6s ease;
+            background: #c8f7c5;
+        }
+        @keyframes greenPulse {
+            0% { box-shadow: 0 0 0 0 rgba(46,125,50,0.6); }
+            70% { box-shadow: 0 0 0 20px rgba(46,125,50,0); }
+            100% { box-shadow: 0 0 0 0 rgba(46,125,50,0); }
+        }
+
+        /* Feedback toast */
+        .toast {
+            position: absolute;
+            top: 90px;
+            left: 20px;
+            right: 20px;
+            background: #fff0f0;
+            border-left: 6px solid #c62828;
+            color: #b71c1c;
+            padding: 12px 14px;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            z-index: 20;
+            box-shadow: 0 8px 18px rgba(198,40,40,0.2);
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+        .toast.show {
+            display: block;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Robot celebration */
+        .robot-celebration {
+            display: none;
+            text-align: center;
+            padding: 10px 0;
+            animation: bounceIn 0.7s ease;
+        }
+        .robot-celebration.show {
+            display: block;
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.08); }
+            70% { transform: scale(0.95); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .robot-emoji {
+            font-size: 4rem;
+            margin-bottom: 4px;
+        }
+
+        .mission-btn {
+            background: #6c3fb5;
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
+            margin: 8px auto 0;
+            display: none;
+            box-shadow: 0 10px 20px rgba(108,63,181,0.3);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .mission-btn.show {
+            display: inline-block;
+        }
+        .mission-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Modal overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 20px;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-card {
+            background: white;
+            max-width: 340px;
+            width: 100%;
+            border-radius: 28px;
+            padding: 24px 20px;
+            text-align: center;
+            box-shadow: 0 30px 45px rgba(0,0,0,0.25);
+            animation: modalPop 0.3s ease;
+        }
+        @keyframes modalPop {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .modal-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+            color: #3e2756;
+        }
+        .modal-card p {
+            font-size: 0.9rem;
+            color: #4a3b5c;
+            line-height: 1.5;
+        }
+        .close-modal {
+            margin-top: 20px;
+            background: #e4d5f9;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-weight: 700;
+            color: #3e2756;
+            cursor: pointer;
+        }
+
+        @media (max-width: 380px) {
+            .symbol-btn {
+                height: 70px;
+                font-size: 0.7rem;
+            }
+            .symbol-shape {
+                transform: scale(0.9);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-frame" id="appContainer">
+        <div class="header">
+            <h1>🤖 Algoritmo del pan</h1>
+            <div class="subtitle">¿Cómo comprar pan?</div>
+        </div>
+
+        <!-- Toast error message -->
+        <div class="toast" id="toast"></div>
+
+        <!-- Steps list -->
+        <div class="steps-section" id="stepsContainer">
+            <!-- Dynamically filled -->
+        </div>
+
+        <!-- Robot celebration & mission button (hidden initially) -->
+        <div class="robot-celebration" id="robotCelebration">
+            <div class="robot-emoji">🤖🎉</div>
+            <div style="font-weight:700; color:#2e7d32; margin:4px 0;">¡Algoritmo completo!</div>
+        </div>
+        <button class="mission-btn" id="missionBtn">📂 Ver Misión de Carpeta</button>
+
+        <!-- Symbol buttons -->
+        <div class="symbols-section" id="symbolsContainer">
+            <!-- Symbol buttons will be created -->
+        </div>
+    </div>
+
+    <!-- Modal for final task -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-card">
+            <h3>📋 ¡Algoritmo construido!</h3>
+            <p>Ahora abre tu carpeta, dibuja este diagrama paso a paso y escribe debajo:<br><br>
+            <strong>¿Qué pasa si la respuesta a "¿Tengo dinero?" es NO?</strong></p>
+            <button class="close-modal" id="closeModalBtn">Entendido</button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- DATA ----------
+            const steps = [
+                { id: 'entrar', text: 'Entrar a la panadería', type: 'Acción', correctSymbol: 'rectangulo' },
+                { id: 'dinero', text: '¿Tengo dinero?', type: 'Decisión', correctSymbol: 'rombo' },
+                { id: 'pedir', text: 'Pedir el pan', type: 'Entrada/Salida', correctSymbol: 'paralelogramo' },
+                { id: 'fin', text: 'Fin', type: 'Fin', correctSymbol: 'ovalo' }
+            ];
+
+            const symbolDefs = [
+                { name: 'ovalo', label: 'Óvalo\nInicio/Fin', shapeClass: 'shape-oval' },
+                { name: 'paralelogramo', label: 'Paralelogramo\nEntrada/Salida', shapeClass: 'shape-parallelogram' },
+                { name: 'rectangulo', label: 'Rectángulo\nProceso', shapeClass: 'shape-rectangle' },
+                { name: 'rombo', label: 'Rombo\nDecisión', shapeClass: 'shape-rhombus' }
+            ];
+
+            // State
+            const assignments = {};   // stepId -> symbolName (once correctly assigned)
+            let selectedStepId = null;
+            let completedCount = 0;
+
+            // DOM elements
+            const stepsContainer = document.getElementById('stepsContainer');
+            const symbolsContainer = document.getElementById('symbolsContainer');
+            const toast = document.getElementById('toast');
+            const robotCelebration = document.getElementById('robotCelebration');
+            const missionBtn = document.getElementById('missionBtn');
+            const modalOverlay = document.getElementById('modalOverlay');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+
+            // ---------- RENDER STEPS ----------
+            function renderSteps() {
+                stepsContainer.innerHTML = '';
+                steps.forEach((step, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'step-card';
+                    card.dataset.stepId = step.id;
+                    if (assignments[step.id]) {
+                        card.classList.add('completed');
+                    }
+                    if (selectedStepId === step.id) {
+                        card.classList.add('selected');
+                    }
+                    card.innerHTML = `
+                        <div class="step-number">${index + 1}</div>
+                        <div class="step-text">${step.text}</div>
+                        <div class="shape-indicator">${assignments[step.id] ? getSymbolEmoji(assignments[step.id]) : '⬜'}</div>
+                    `;
+                    card.addEventListener('click', () => onStepClick(step.id));
+                    stepsContainer.appendChild(card);
+                });
+            }
+
+            function getSymbolEmoji(symbolName) {
+                switch(symbolName) {
+                    case 'ovalo': return '⭕';
+                    case 'paralelogramo': return '🔷';
+                    case 'rectangulo': return '🟩';
+                    case 'rombo': return '🔶';
+                    default: return '⬜';
+                }
+            }
+
+            // ---------- RENDER SYMBOLS ----------
+            function renderSymbols() {
+                symbolsContainer.innerHTML = '';
+                symbolDefs.forEach(sym => {
+                    const btn = document.createElement('button');
+                    btn.className = 'symbol-btn';
+                    btn.dataset.symbol = sym.name;
+                    btn.innerHTML = `
+                        <div class="symbol-shape ${sym.shapeClass}"></div>
+                        <span>${sym.label.replace('\n', ' ')}</span>
+                    `;
+                    btn.addEventListener('click', () => onSymbolClick(sym.name));
+                    symbolsContainer.appendChild(btn);
+                });
+            }
+
+            // ---------- STEP CLICK ----------
+            function onStepClick(stepId) {
+                // Ignore if already completed
+                if (assignments[stepId]) return;
+
+                // Toggle selection
+                if (selectedStepId === stepId) {
+                    selectedStepId = null;
+                } else {
+                    selectedStepId = stepId;
+                }
+                renderSteps();
+                hideToast();
+            }
+
+            // ---------- SYMBOL CLICK ----------
+            function onSymbolClick(symbolName) {
+                if (!selectedStepId) {
+                    showToast('👆 Primero toca un paso para asignarle un símbolo.');
+                    return;
+                }
+
+                const step = steps.find(s => s.id === selectedStepId);
+                if (!step) return;
+
+                // Check correctness
+                if (symbolName === step.correctSymbol) {
+                    // Correct assignment
+                    assignments[selectedStepId] = symbolName;
+                    completedCount = Object.keys(assignments).length;
+                    
+                    // Flash the symbol button
+                    const symbolBtn = document.querySelector(`.symbol-btn[data-symbol="${symbolName}"]`);
+                    if (symbolBtn) {
+                        symbolBtn.classList.add('correct-flash');
+                        setTimeout(() => symbolBtn.classList.remove('correct-flash'), 600);
+                    }
+
+                    // Reset selection
+                    selectedStepId = null;
+                    renderSteps();
+
+                    // Check if all completed
+                    if (completedCount === steps.length) {
+                        onAllCompleted();
+                    } else {
+                        showToast('✅ ¡Correcto! Sigue con el siguiente paso.', 'success');
+                    }
+                } else {
+                    // Wrong symbol
+                    let errorMsg = '¡Error! ';
+                    if (step.type === 'Acción') errorMsg += '¿Es una decisión o una acción?';
+                    else if (step.type === 'Decisión') errorMsg += 'Una decisión se representa con un rombo.';
+                    else if (step.type === 'Entrada/Salida') errorMsg += 'Entrada/Salida usa un paralelogramo.';
+                    else if (step.type === 'Fin') errorMsg += 'El inicio/fin se representa con un óvalo.';
+                    else errorMsg += 'Ese símbolo no corresponde.';
+                    showToast(errorMsg, 'error');
+                    // Keep step selected so they can try again
+                }
+            }
+
+            // ---------- TOAST ----------
+            function showToast(message, type = 'error') {
+                toast.textContent = message;
+                toast.className = 'toast show';
+                if (type === 'success') {
+                    toast.style.background = '#e8f5e9';
+                    toast.style.borderLeftColor = '#2e7d32';
+                    toast.style.color = '#1b5e20';
+                } else {
+                    toast.style.background = '#fff0f0';
+                    toast.style.borderLeftColor = '#c62828';
+                    toast.style.color = '#b71c1c';
+                }
+                clearTimeout(window.toastTimer);
+                window.toastTimer = setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 2500);
+            }
+
+            function hideToast() {
+                toast.classList.remove('show');
+                clearTimeout(window.toastTimer);
+            }
+
+            // ---------- ALL COMPLETED ----------
+            function onAllCompleted() {
+                robotCelebration.classList.add('show');
+                missionBtn.classList.add('show');
+                hideToast();
+                // Optional vibration (if supported)
+                if (window.navigator && window.navigator.vibrate) {
+                    window.navigator.vibrate(100);
+                }
+            }
+
+            // ---------- MISSION BUTTON ----------
+            missionBtn.addEventListener('click', () => {
+                modalOverlay.classList.add('active');
+            });
+
+            closeModalBtn.addEventListener('click', () => {
+                modalOverlay.classList.remove('active');
+            });
+
+            modalOverlay.addEventListener('click', (e) => {
+                if (e.target === modalOverlay) {
+                    modalOverlay.classList.remove('active');
+                }
+            });
+
+            // ---------- INITIAL RENDER ----------
+            renderSteps();
+            renderSymbols();
+
+            // Prevent accidental pull-to-refresh on mobile
+            document.body.addEventListener('touchmove', function(e) {
+                if (e.target.closest('.steps-section')) {
+                    // allow scroll inside steps if needed
+                } else {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+        })();
+    </script>
+</body>
+</html>
